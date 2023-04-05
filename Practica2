@@ -13,6 +13,15 @@ filter(==7) ::  (Eq a,Num a) => [a] -> [a]
 map(++[1]) :: [[Num]] -> [[Num]]
 
 3.
-zero::Int
-zero =0
-(Int -> Int) -> Int //  f g = g 0::Int + 0::Int
+
+zero = (0::Int)
+(Int -> Int) -> Int //  f g = g zero + zero
+Int -> (Int -> Int) // f a b = a+b+zero
+(Int -> Int) -> (Int -> Int) === (Int -> Int) -> Int -> Int // f g a = (g (a+zero) )+zero 
+Int -> Bool // f a = a+zero == zero
+Bool -> (Bool -> Bool) === Bool -> Bool -> Bool // f a b = (a == True) && (a == b) 
+(Int,Char) -> Bool // f (x,c) = (x == zero) && (c == 'a')
+(Int, Int) -> Int // f (x,y) = x+y+zero
+Int -> (Int,Int) // f x = (x+zero,x)
+a -> Bool // f a = True
+a -> a // f a = a
