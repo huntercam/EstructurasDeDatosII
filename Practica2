@@ -1,0 +1,18 @@
+1.
+test :: (Num a, Eq a) => (a -> a) -> a -> Bool
+esMenor :: Ord -> Ord -> Bool
+eq :: Eq -> Eq -> Bool
+showVal :: (Show a) => a -> String
+
+2.
+(+5) :: Num -> Num
+(0<) :: (Ord a, Num a) => a -> Bool
+('a':) :: String -> String
+(++ "\n") :: String -> String
+filter(==7) ::  (Eq a,Num a) => [a] -> [a]
+map(++[1]) :: [[Num]] -> [[Num]]
+
+3.
+zero::Int
+zero =0
+(Int -> Int) -> Int //  f g = g 0::Int + 0::Int
