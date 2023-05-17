@@ -1,0 +1,74 @@
+Queremos probar que hojas x < 2¨altura(x) para todo arbol x.
+
+
+Probamos por induccion sobre el arbol.
+
+Tenemos los constructores: Nodo x l r | Hoja x
+
+si arbol = Hoja p, tenemos hojas(arbol) = 1
+y altura (arbol) = 1. Luego, 1 z 2*1. BIEN.
+
+PASO INDUCTIVO:
+Si el arbol, es en cambio, de la forma (Nodo x l r)
+entonces, tenemos:
+
+altura ( arbol ) = 1 + max(altura l, altura r)
+hojas ( arbol ) = hojas (l) + hojas(r)
+
+tenemos estas dos inecuaciones:
+hojas(l)  <  2**altura(l)
+hojas(r)  <  2**altura(r)
+sumandolas:
+
+hojas(arbol) = hojas(r) + hojas(l) (HI) < 2**altura(r) + 2**altura(l) <= 2* max( 2**altura(r) , 2**altura(l) )
+<  2 * 2**max( altura(r) , altura(l) ) = 2**(1 + max(altura (r), altura (l)))  = 2**altura(arbol)
+
+9-
+alturaAGT (Node a []) = 1
+alturaAGT (Node a (x:xs)) = (max ((alturaAGT x)+1) (alturaAGT (Node a (x:xs)))
+
+maxAGT (Node a []) = a
+maxAGT (Node a (x:xs)) = (max (maxAGT x) (maxAGT (Node a xs)))
+
+ponerProfs n (Node x xs) = Node n (map (ponerProfs (n+1)) xs)
+ponerProfs n (Node a x:xs) = Node n (ponerProfs (n+1) x):pon
+
+Queremos demostrar que alturaAGT = maxAGT o ponerProfs 1
+alturaAGT (Node a []) = 1
+maxAGT o ponerProfs 1 (Node a []) = maxAGT (Node 1 []) = 1
+
+Paso inductivo:
+alturaAGT (Node a (x:xs)) = (max ((alturaAGT x)+1) (alturaAGT (Node a xs)))
+                          = (max ((maxAGT o ponerProfs 1 x) + 1) (maxAGT o ponerProfs 1 (Node a xs)))
+                          = [maxAGT o ponerProfs 1 (Node a x:xs)]
+
+maxAGT o ponerProfs 1 (Node a x:xs)
+= maxAGT (Node 1 (map ponerProfs 2 x:xs))
+= maxAGT (Node 1 (ponerProfs 2 x):(map ponerProfs 2 xs))
+= max (maxAGT (ponerProfs 2 x)) (maxAGT (Node 1 (map ponerProfs 2 xs)))
+= max (maxAGT (ponerProfs 2 x)) (maxAGT o ponerProfs 1 (Node a xs))
+= max (maxAGT (ponerProfs 2 x)) (alturaAGT (Node a xs))
+= max (maxAGT o ponerProfs 2 x) (alturaAGT (Node a xs))
+
+<bullshit>
+
+= max ((maxAGT o ponerProfs 1 x) + 1) (alturaAGT (Node a xs))
+= max (alturaAGT x + 1) (alturaAGT (Node a xs))
+= alturaAGT (Node a x:xs) [QED]
+
+maxAGT o ponerProfs 2 x = (maxAGT o ponerProfs 1 x) + 1
+maxAGT o ponerProfs 2 (Node a []) = 2
+maxAGT o ponerProfs 1 (Node a []) = 1
+
+Paso inductivo:
+maxAGT o ponerProfs 2 (Node a x:xs)
+= maxAGT (Node 2 (map ponerProfs 3 x:xs))
+= max (ponerProfs 3 x) (maxAGT (Node 2 (map ponerProfs 3 xs)))
+
+(maxAGT o ponerProfs 1 (Node a x:xs)) + 1
+= maxAGT (Node 1 (map ponerProfs 2 x:xs)) + 1
+= (max (maxAGT (ponerProfs 2 x)) (maxAGT (Node 1 (map ponerProfs 2 xs))) + 1
+= (max (maxAGT o ponerProfs 2 x) (maxAGT (Node 1 (map ponerProfs 2 xs))) + 1
+= (max (maxAGT o ponerProfs 2 x)-1 (maxAGT
+
+</bullshit>
