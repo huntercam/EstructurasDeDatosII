@@ -19,10 +19,12 @@ reducetree:: (a -> a -> a) -> TreeView a (Arr a) -> a
 reducetree f (ELT x) = x
 reducetree f (NODE ls rs) = 
     let 
-        (ca,cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))                   
+        (ca, cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))                   
     in
         (f ca cb)
 
+--- W(expandir) = sum W (fill) = sum W (f)
+--- S(expandir) = max S (fill) = max S (f)
 expandir :: (a -> a -> a) -> Arr a -> Arr a -> Arr a
 expandir f ar br =
     let
@@ -30,12 +32,11 @@ expandir f ar br =
             then   (nthS ar (i `div` 2))
             else f (nthS ar (i `div` 2)) (nthS br (i-1))
     in
-        tabulate fill (lnegthS br)
+        tabulate fill (lengthS br)
 
-append a b = flatten (Arr.fromList [a, b])
-appendPar (a, b) = flatten (Arr.fromList [a, b])
-
-emparejar :: (a -> a -> a) -> Arr a -> [a]
+--- W(emparejar) = sum W (unir) = sum W (f)
+--- S(emparejar) = max S (unir) = max S (f)
+emparejar :: (a -> a -> a) -> Arr a -> Arr a
 emparejar f ar = 
     let 
         len    = lengthS ar
@@ -49,6 +50,7 @@ emparejar f ar =
             tabulate unir  half    --- llama hasta (fpares half-1)
         else
             tabulate unir (half+1) --- llama hasta (fpares half)
+
 
 instance Seq Arr where
     emptyS = empty
@@ -66,7 +68,8 @@ instance Seq Arr where
         case len of
             0 -> NIL
             _ -> CONS (nthS ar 0) (dropS ar 1)
-    appendS ar br = flatten (Arr.fromList [ar, br])
+    appendS ar br = flatten (Arr.fromList [ar, br]) -- W(appendS) = 4 + |ar| + |br| 
+                                                    -- S(appendS) = 2 + lg(2) 
     fromList xs = Arr.fromList xs
     joinS arr = flatten arr
     tabulateS f n = tabulate f n
@@ -78,8 +81,9 @@ instance Seq Arr where
             tabulate applyf (lengthS ar)
 
     ---log + map / tabulate
-    filterS f ar = joinS (mapS (\x-> if (f x) then [x] else [])  ar)
+    filterS f ar = joinS (mapS (\x-> if (f x) then (singletonS x) else emptyS)  ar)
 
+    reduceS f neutro emptyS = neutro
     reduceS f neutro ar = let len = lengthS ar in 
         case len of
             0 -> neutro 
@@ -92,5 +96,5 @@ instance Seq Arr where
             _ ->
                 let reduccion = (emparejar f ar)
                     (recursion, total) = scanS f neutro reduccion
-                    expansion =  expandir f recursion
+                    expansion =  expandir f recursion ar
                 in (expansion, total)

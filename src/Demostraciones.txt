@@ -1,0 +1,105 @@
+Ejercicio 2
+W(mapS) \in O(n) -- usamos el map del preludio haskell, que tiene dicha complejidad.
+S(mapS) \in O(n)
+
+W(reduceS) \in
+
+Reduce presenta la siguiente funcion de costo:
+reduceS ([]) = k1
+reduceS ( N ) = k2 + reducetree( N )
+Wreducetree ( N )  = reducetree(N/2) + sum {0-i} w(f x y) + k4          i =0
+                   = 4 * reducetree(N/4) + sum {0-i} w(f x y) + k5      i = 1
+                   = 8 * reducetree(N/8) + sum {0-i} w(f x y) + k5      i = 2
+                    \in   O( N           +  sum{0-k} w (f x y)   )
+                    con N = 2^k.
+       36
+   10     26
+ 3   7  11  15
+1 2 3 4 5 6 7 8
+
+S(reduceS f b s) \in O(lg|s| * max {x,y \in Or(f,b,s)}) S(f x y)
+
+
+emparejar f (x:y:xs) = (f x y):(emparejar f xs)
+emparejar f [x] = [x]
+emparejar f _ = []
+
+W(emparejar f (x:y:xs)) = W(f x y) + W(emparejar f xs) + k1
+W(emparejar f [x]) = k2
+W(emparejar f _)   = k3
+
+N = largo de la secuencia <x0, x1, ..., xn>
+W(emparejar <x0, x1, ..., xn>) = W(f x0 x1) + W(emparejar <x2,...,xn>) + k1
+                               = W(f x0 x1) + W(f x2 x3) + W(emparejar <x2,...,xn>) + 2k1
+                               ...
+                               = sum {i-\floor{n/2}} W(f x2i x(2i+1)) + nk1 + k2 si es impar
+                                                                            + k3 si es par
+                               \in O(sum {i-\floor{n/2}} W(f x2i x(2i+1)) + n)
+
+expandir f (fx:fxs) (x:y:xs) = fx:((f fx x):(expandir f fxs xs))
+expandir f [fx] [x] = [fx]
+expandir f [] [] = []
+
+W(expandir f (fx:fxs) (x:y:xs)) = W(f fx x) + W(expandir f fxs xs) + k1
+W(expandir f [fx] [x]) = k2
+W(expandir f [] []) = k3
+
+W(expandir f <x0,x1,...,xn> <y0,y1,...,ym>) = W(f x0 y0) + W(expandir f <x1,...,xn> <y2,...,ym>) + k1
+                                            = W(f x0 y0) + W(f x1 y2) + W(expandir f <x2,...,xn> <y4,...,ym>) + 2k1
+                                            ...
+                                            \in O(sum {i-\floor{m/2}} W (f xi y2i) + m)
+
+scanS f neutro []  = k1
+scanS f neutro [a] = k2 + W(f neutro a)
+scanS f neutro ls  = let reduccion = (emparejar f ls) --- [x,y]
+                        (recursion, total) = scanS f neutro reduccion -- (<b, b*a1*a2>, b*a1*a2*a3*a4>)
+                        expansion =  expandir f recursion ls
+                    in (expansion, total)
+
+N = largo de la secuencia
+W(emparejar N) = k1 + W(emparejar N-2) => O(N)
+
+N = largo de la secuencia 
+W(expandir N) = k1 + W(expandir N-2) => O(N)
+
+N = largo de la secuencia
+W(scanS f b N) = emparejar(N) + W(scanS f b N/2) + expandir(N) + k1 =
+
+Sea <x0,x1,x2,...,xn> la secuencia S. Sea <y0, y1, ..., ym> = p1 (scanS f neutro (emparejar f S)).
+                    <neutro,         ,x0+x1,      ,x0+x1+x2+x3,       >
+                    k*(sum {i-\floor{n/2}} W(f x2i x(2i+1)) + n) + k*(sum {i-\floor{n/2}} W (f yi x2i) + n)   W(scanS f b N/2) =
+                    ...
+                    k * (  sum {x,y \in Or(f,b,s)} + 2n) + W(scanS f b N/2)
+                    \in O(  ( sum {x,y \in Or(f,b,s)} + 2n))
+
+
+reducetree f (ELT x) = x
+reducetree f (NODE ls rs) = 
+    let 
+        (ca, cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))                   
+    in
+        (f ca cb)
+
+reduceS f neutro emptyS = neutro
+reduceS f neutro ar = f neutro (reducetree f (showtS ar))
+
+
+---Reduce presenta la siguiente funcion de costo:
+---reduceS ([]) = k1
+---reduceS ( N ) = k2 + reducetree( N )
+---Wreducetree ( N )  = reducetree(N/2) + sum {0-i} w(f x y) + k4          i =0
+---                   = 4 * reducetree(N/4) + sum {0-i} w(f x y) + k5      i = 1
+---                   = 8 * reducetree(N/8) + sum {0-i} w(f x y) + k5      i = 2
+---                    \in   O( N           +  sum{0-k} w (f x y)   )
+---                    con N = 2^k.
+---       36
+---   10     26
+--- 3   7  11  15
+--- 1 2 3 4 5 6 7 8
+
+--- S(reduceS f b s) \in O(lg|s| * max {x,y \in Or(f,b,s)}) S(f x y)
+N = largo de la lista
+S(reduceS f b N) = k1 + S(reducetree f (showtS N) ) =
+
+P = tamaño del arbol
+ k1 + k2 S(reducetree f P ) = k1 + k2 + S(reducetree f P/2 ) + w( f a b)
