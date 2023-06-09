@@ -1,3 +1,5 @@
+module ListSeq where
+
 import Seq
 import Par
 
@@ -9,13 +11,14 @@ reducetree f (NODE ls rs) = let (ca,cb) =  (reducetree f (showtS ls)) ||| (reduc
                         in  (f ca cb)
 
 expandir:: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
-expandir f comprimido ls i n | i >= n-1       = []
-                           | i `mod` 2 == 0 = (head comprimido):(expandir f comprimido ls (i+1) n)
-                           | i `mod` 2 == 1 = (f (head comprimido) (head ls)):(expandir f (tail comprimido) (drop 2 ls) (i+1) n)
+expandir f comprimido ls i n | i >= n       = []
+                             | i `mod` 2 == 0 = (head comprimido):(expandir f comprimido ls (i+1) n)
+                             | i `mod` 2 == 1 = (f (head comprimido) (head ls)):(expandir f (tail comprimido) (drop 2 ls) (i+1) n)
 
-emparejar:: (a -> a -> a) -> [a] -> [a]
-emparejar f (x:y:xs) = (f x y):(emparejar f xs) 
-emparejar f _ = []
+emparejar:: (a -> a -> a) -> a -> [a] -> [a]
+emparejar f neutro (x:y:xs) = (f x y):(emparejar f neutro xs)
+emparejar f neutro [x] = [(f neutro x)] 
+emparejar f neutro _ = []
 
 -- version paralela de tabulate
 mapTree f EMPTY = []
@@ -40,17 +43,17 @@ instance Seq [] where
                case size of
                   0 -> EMPTY
                   1 -> ELT (head ls)
-                  _ -> let pot2 = truncate (log (size-1))
+                  _ -> let pot2 =  2 ^ floor ( logBase (fromIntegral 2) (fromIntegral (size-1)) )
                            (izq, der) = (take pot2 ls) ||| (drop pot2 ls)
                        in (NODE izq der)
     
-    showlS emptyS = NIL
+    showlS [] = NIL
     showlS (l:ls) = CONS l ls
 
     joinS [emptyS] = emptyS
     joinS (l:ls) = appendS l (joinS ls)
     --reducetree f EMPTY no puede pasar
-    reduceS f neutro emptyS = neutro
+    reduceS f neutro [] = neutro
     reduceS f neutro ls = (f neutro (reducetree f (showtS ls)) ) -- como no es vacia, no hay emptys
   
     --- si no es asociativa que onda?
@@ -59,9 +62,9 @@ instance Seq [] where
 
 
 
-    scanS f neutro emptyS  = ( [] , neutro )
+    scanS f neutro []  = ( [] , neutro )
     scanS f neutro [a] = ([neutro], f neutro a)
-    scanS f neutro ls = let reduccion = (emparejar f ls) --- [x,y]
+    scanS f neutro ls = let reduccion = (emparejar f neutro ls) --- [x,y]
                             (recursion, total) = scanS f neutro reduccion -- (<b, b*a1*a2>, b*a1*a2*a3*a4>)
                             expansion =  expandir f recursion ls 0 (lengthS ls)
                        in (expansion, total)

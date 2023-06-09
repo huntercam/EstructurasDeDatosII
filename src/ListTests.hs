@@ -1,15 +1,18 @@
 module ListTests where
 
 import Test.HUnit
-import Seq
 import ListSeq
+import Seq
 
 
-s0, s1, s2, s3 :: [Int]
+
+s0, s1, s2, s3, s4, s5 :: [Int]
 s0 = fromList []
 s1 = fromList [4]
 s2 = fromList [5,1]
 s3 = fromList [6,3,4]
+s4 = fromList [0,0,0,0]
+s5 = fromList [-1,10,-10,1]
 
 testLengthEmptySeq :: Test
 testLengthEmptySeq = 
@@ -31,6 +34,11 @@ testMapNonEmptySeq =
   TestCase $ assertEqual "Error on non-empty sequence map"
                          (fromList [7,4,5]) (mapS (+1) s3)
 
+testMap2 :: Test
+testMap2 = 
+  TestCase $ assertEqual "Error on testMap2"
+                         s4 (mapS (*2) s4)
+
 testReduceSumSeq0 :: Test
 testReduceSumSeq0 = 
   TestCase $ assertEqual "Error reducing empty sequence"
@@ -40,6 +48,11 @@ testReduceSumSeq3 :: Test
 testReduceSumSeq3 = 
   TestCase $ assertEqual "Error reducing sequence of length 3"
                          13 (reduceS (+) 0 s3)
+                         
+testReduce2 :: Test
+testReduce2 = 
+  TestCase $ assertEqual "Error on testReduce2"
+                         0 (reduceS (+) 0 s5)
 
 testScanSumSeq0 :: Test
 testScanSumSeq0 = 
@@ -51,6 +64,11 @@ testScanSumSeq3 =
   TestCase $ assertEqual "Error on scan for sequence of length 3"
                          (fromList[0,6,9], 13) (scanS (+) 0 s3)
 
+testScan2 :: Test
+testScan2 = 
+  TestCase $ assertEqual "Error on testScan2"
+                         (fromList[0,-1,9,-1], 0) (scanS (+) 0 s5)
+
 testsLists = 
   [
     testMapEmptySeq,
@@ -60,7 +78,10 @@ testsLists =
     testReduceSumSeq0,
     testReduceSumSeq3,
     testScanSumSeq0,
-    testScanSumSeq3
+    testScanSumSeq3,
+    testMap2,
+    testReduce2,
+    testScan2
   ]
 
 
