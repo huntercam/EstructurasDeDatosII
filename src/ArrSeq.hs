@@ -25,9 +25,10 @@ appendPar (a, b) = flatten (fromList [a, b])
 
 emparejar :: (a -> a -> a) -> Arr a -> [a]
 emparejar f ar = let len = lengthS ar in
-    | len == 0  = []
-    | len == 1  = [nthS ar 0]
-    | otherwise = (f (nthS ar 0) (nthS ar 1)):(emparejar f (dropS ar 2))
+    case len of 
+        0 -> []
+        1 -> [nthS ar 0]
+        _ -> (f (nthS ar 0) (nthS ar 1)):(emparejar f (dropS ar 2))
 
 instance Seq Arr where
     emptyS = empty
@@ -42,26 +43,30 @@ instance Seq Arr where
     dropS ar n = subArray n (lengthS ar - n) ar
     
     showtS ar = let len = lenghtS ar in
-                | len == 0 = EMPTY
-                | len == 1 = ELT (nthS ar 0) 
-                | otherwise = NODE (takeS ar (div len 2) ) ( dropS ar (div len 2) )
+        case len of
+            0 -> EMPTY
+            1 -> ELT (nthS ar 0) 
+            _ -> NODE (takeS ar (div len 2) ) ( dropS ar (div len 2) )
     
     showlS ar = let len = lengthS ar in
-        | len == 0  = NIL
-        | otherwise = CONS (nthS ar 0) (dropS ar 1)
+        case len of
+          0 -> NIL
+          _ -> CONS (nthS ar 0) (dropS ar 1)
 
     fromList xs = fromList xs --- Maybe PROBLEMAS
 
     joinS arr = flatten arr
 
     reduceS f neutro ar = let len = lengthS ar in 
-        | len == 0  = neutro 
-        | otherwise = f neutro (reducetree f (showtS ar))
+        case len of
+            0 -> neutro 
+            _ -> f neutro (reducetree f (showtS ar))
     
     scanS f neutro ar = let len = lengthS ar in
-        | len == 0  = ([], neutro)
-        | len == 1  = ([neutro], f neutro (nthS ar 0))
-        | otherwise = 
+      case len of
+          0  -> ([], neutro)
+          1  -> ([neutro], f neutro (nthS ar 0))
+          _ -> 
             let reduccion = (emparejar f ls)
                 (recursion, total) = scanS f neutro reduccion
                 expansion =  expandir f recursion ls 0 (lengthS ls)
