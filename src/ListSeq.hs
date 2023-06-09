@@ -8,7 +8,7 @@ import Par
 reducetree:: (a -> a -> a) -> TreeView a [a] -> a
 reducetree f (ELT x) = x
 reducetree f (NODE ls rs) = let (ca,cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))
-                        in  (f ca cb)
+                            in  (f ca cb)
 
 expandir:: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
 expandir f comprimido ls i n | i >= n       = []
@@ -16,9 +16,9 @@ expandir f comprimido ls i n | i >= n       = []
                              | i `mod` 2 == 1 = (f (head comprimido) (head ls)):(expandir f (tail comprimido) (drop 2 ls) (i+1) n)
 
 emparejar:: (a -> a -> a) -> a -> [a] -> [a]
-emparejar f neutro (x:y:xs) = (f x y):(emparejar f neutro xs)
-emparejar f neutro [x] = [(f neutro x)] 
-emparejar f neutro _ = []
+emparejar f (x:y:xs) = (f x y):(emparejar f xs)
+emparejar f [x] = [x]
+emparejar f _ = []
 
 -- version paralela de tabulate
 mapTree f EMPTY = []
@@ -64,7 +64,7 @@ instance Seq [] where
 
     scanS f neutro []  = ( [] , neutro )
     scanS f neutro [a] = ([neutro], f neutro a)
-    scanS f neutro ls = let reduccion = (emparejar f neutro ls) --- [x,y]
+    scanS f neutro ls = let reduccion = (emparejar f ls) --- [x,y]
                             (recursion, total) = scanS f neutro reduccion -- (<b, b*a1*a2>, b*a1*a2*a3*a4>)
                             expansion =  expandir f recursion ls 0 (lengthS ls)
                        in (expansion, total)
