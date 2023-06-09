@@ -17,13 +17,11 @@ import Seq
 
 reducetree:: (a -> a -> a) -> TreeView a (Arr a) -> a
 reducetree f (ELT x) = x
-reducetree f (NODE ls rs) = let (ca,cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))
-                        in  (f ca cb)
-
----expandir:: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
----expandir f comprimido ls i n | i >= n       = []
----                             | i `mod` 2 == 0 = (head comprimido):(expandir f comprimido ls (i+1) n)
----                             | i `mod` 2 == 1 = (f (head comprimido) (head ls)):(expandir f (tail comprimido) (drop 2 ls) (i+1) n)
+reducetree f (NODE ls rs) = 
+    let 
+        (ca,cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))                   
+    in
+        (f ca cb)
 
 expandir :: (a -> a -> a) -> Arr a -> Arr a -> Arr a
 expandir f ar br =
@@ -36,13 +34,6 @@ expandir f ar br =
 
 append a b = flatten (Arr.fromList [a, b])
 appendPar (a, b) = flatten (Arr.fromList [a, b])
-
----emparejar :: (a -> a -> a) -> Arr a -> [a]
----emparejar f ar = let len = lengthS ar in
----    case len of 
----        0 -> []
----        1 -> [nthS ar 0]
----        _ -> (f (nthS ar 0) (nthS ar 1)):(emparejar f (dropS ar 2))
 
 emparejar :: (a -> a -> a) -> Arr a -> [a]
 emparejar f ar = 
@@ -73,8 +64,8 @@ instance Seq Arr where
             _ -> NODE (takeS ar (div len 2) ) ( dropS ar (div len 2) )
     showlS ar = let len = lengthS ar in
         case len of
-          0 -> NIL
-          _ -> CONS (nthS ar 0) (dropS ar 1)
+            0 -> NIL
+            _ -> CONS (nthS ar 0) (dropS ar 1)
     appendS ar br = flatten (Arr.fromList [ar, br])
     fromList xs = Arr.fromList xs
     joinS arr = flatten arr
@@ -86,12 +77,8 @@ instance Seq Arr where
         in
             tabulate applyf (lengthS ar)
 
-    filterS f ar = let len = lengthS ar in
-                case len of 
-                 1 ->  if (f (nthS ar 0) ) then  singletonS (nthS ar 0) else emptyS
-                 _ -> appendPar (
-                            filterS f (takeS ar (div len 2) ) |||
-                            filterS f (dropS ar (div len 2) )
+    ---log + map / tabulate
+    filterS f ar = joinS (mapS (\x-> if (f x) then [x] else [])  ar)
 
     reduceS f neutro ar = let len = lengthS ar in 
         case len of
@@ -99,11 +86,11 @@ instance Seq Arr where
             _ -> f neutro (reducetree f (showtS ar))
 
     scanS f neutro ar = let len = lengthS ar in
-      case len of
-          0 -> (emptyS, neutro)
-          1 -> (singletonS neutro, f neutro (nthS ar 0))
-          _ -> 
-            let reduccion = (emparejar f ar)
-                (recursion, total) = scanS f neutro reduccion
-                expansion =  expandir f recursion
-            in (expansion, total)
+        case len of
+            0 -> (emptyS, neutro)
+            1 -> (singletonS neutro, f neutro (nthS ar 0))
+            _ ->
+                let reduccion = (emparejar f ar)
+                    (recursion, total) = scanS f neutro reduccion
+                    expansion =  expandir f recursion
+                in (expansion, total)
