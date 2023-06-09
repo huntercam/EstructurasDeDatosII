@@ -15,13 +15,19 @@ import Arr
 import Par
 import Seq
 
-reducetree:: (a -> a -> a) -> TreeView a [a] -> a
+reducetree:: (a -> a -> a) -> TreeView a (Arr a) -> a
 reducetree f (ELT x) = x
 reducetree f (NODE ls rs) = let (ca,cb) =  (reducetree f (showtS ls)) ||| (reducetree f (showtS rs))
                         in  (f ca cb)
 
-append a b = flatten (fromList [a, b])
-appendPar (a, b) = flatten (fromList [a, b])
+expandir:: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
+expandir f comprimido ls i n | i >= n       = []
+                             | i `mod` 2 == 0 = (head comprimido):(expandir f comprimido ls (i+1) n)
+                             | i `mod` 2 == 1 = (f (head comprimido) (head ls)):(expandir f (tail comprimido) (drop 2 ls) (i+1) n)
+
+
+append a b = flatten (Arr.fromList [a, b])
+appendPar (a, b) = flatten (Arr.fromList [a, b])
 
 emparejar :: (a -> a -> a) -> Arr a -> [a]
 emparejar f ar = let len = lengthS ar in
@@ -31,18 +37,18 @@ emparejar f ar = let len = lengthS ar in
         _ -> (f (nthS ar 0) (nthS ar 1)):(emparejar f (dropS ar 2))
 
 instance Seq Arr where
-    emptyS = empty
-    singletonS a = fromList [a]
-    lengthS ar = length ar
-    nthS ar i = ! ar  i
+    emptyS = empty 
+    singletonS a = Arr.fromList [a]
+    lengthS ar = Arr.length ar
+    nthS ar i = ( (!) ar  i)
     tabulateS f n = tabulate f n
-
-    appendS ar br = flatten (fromList [a, b])
+    fromList xs = Arr.fromList xs
+    appendS ar br = flatten (Arr.fromList [ar, br])
     takeS ar n = subArray 0 n ar
 
     dropS ar n = subArray n (lengthS ar - n) ar
     
-    showtS ar = let len = lenghtS ar in
+    showtS ar = let len = lengthS ar in
         case len of
             0 -> EMPTY
             1 -> ELT (nthS ar 0) 
@@ -53,7 +59,7 @@ instance Seq Arr where
           0 -> NIL
           _ -> CONS (nthS ar 0) (dropS ar 1)
 
-    fromList xs = fromList xs --- Maybe PROBLEMAS
+    
 
     joinS arr = flatten arr
 
@@ -64,24 +70,25 @@ instance Seq Arr where
     
     scanS f neutro ar = let len = lengthS ar in
       case len of
-          0  -> ([], neutro)
-          1  -> ([neutro], f neutro (nthS ar 0))
+          0  -> (emptyS, neutro)
+          1  -> (singletonS neutro, f neutro (nthS ar 0))
           _ -> 
-            let reduccion = (emparejar f ls)
+            let reduccion = (emparejar f ar)
                 (recursion, total) = scanS f neutro reduccion
-                expansion =  expandir f recursion ls 0 (lengthS ls)
+                expansion =  expandir f recursion ar 0 (lengthS ar)
             in (expansion, total)
        
     
-    mapS f ar = let l = length ar in
+    mapS f ar = let l = lengthS ar in
         appendPar (
-            mapS f (take (div l 2) ar) |||
-            mapS f (drop (div l 2) ar)
+            mapS f (takeS ar (div l 2) ) |||
+            mapS f (dropS ar (div l 2) )
         )
 
-    filterS f ar = let l = lengthS ar in
-                  | l == 1 = if (f (nths 0 ar) ) then [ (nths 0 ar) ] else []
-                  | otherwise = appendPar (
-                            filterS f (take (div l 2) ar) |||
-                            filterS f (drop (div l 2) ar)
+    filterS f ar = let len = lengthS ar in
+                case len of 
+                 1 ->  if (f (nthS ar 0) ) then  singletonS (nthS ar 0) else emptyS
+                 _ -> appendPar (
+                            filterS f (takeS ar (div len 2) ) |||
+                            filterS f (dropS ar (div len 2) )
                         )
