@@ -11,7 +11,7 @@ reducetree f (NODE ls rs) = let (ca,cb) =  (reducetree f (showtS ls)) ||| (reduc
                             in  (f ca cb)
 
 expandir:: (a -> a -> a) -> [a] -> [a] -> [a]
-expandir f (fx:fxs) (x:y:xs) = fx:((f fx y):(expandir f fxs xs))
+expandir f (fx:fxs) (x:y:xs) = fx:((f fx x):(expandir f fxs xs))
 expandir f [fx] [x] = [fx]
 expandir f [] [] = []
 
@@ -73,7 +73,7 @@ instance Seq [] where
                             (recursion, total) = scanS f neutro reduccion -- (<b, b*a1*a2>, b*a1*a2*a3*a4>)
                             expansion =  expandir f recursion ls
                        in (expansion, total)
-                  
+                       
     fromList xs = xs
 
  --  (a,b,c,d) -> (ab,cd) -> (abcd)
