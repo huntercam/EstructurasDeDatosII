@@ -19,8 +19,7 @@ Wreducetree ( N )  = reducetree(N/2) + sum {0-i} w(f x y) + k4          i =0
 
 S(reduceS f b s) \in O(lg|s| * max {x,y \in Or(f,b,s)}) S(f x y)
 
-
-emparejar f (x:y:xs) = (f x y):(emparejar f xs)
+emparejar f (x:y:xs) = let (a, b) = f x y ||| emparejar f xs in a:b
 emparejar f [x] = [x]
 emparejar f _ = []
 
@@ -29,14 +28,26 @@ W(emparejar f [x]) = k2
 W(emparejar f _)   = k3
 
 N = largo de la secuencia <x0, x1, ..., xn>
-W(emparejar <x0, x1, ..., xn>) = W(f x0 x1) + W(emparejar <x2,...,xn>) + k1
-                               = W(f x0 x1) + W(f x2 x3) + W(emparejar <x2,...,xn>) + 2k1
+W(emparejar f <x0, x1, ..., xn>) = W(f x0 x1) + W(emparejar f <x2,...,xn>) + k1
+                               = W(f x0 x1) + W(f x2 x3) + W(emparejar f <x2,...,xn>) + 2k1
                                ...
                                = sum {i-\floor{n/2}} W(f x2i x(2i+1)) + nk1 + k2 si es impar
                                                                             + k3 si es par
                                \in O(sum {i-\floor{n/2}} W(f x2i x(2i+1)) + n)
+                               <La sumatoria se come el termino lineal>
+                               \in O(sum {i-\floor{n/2}} W(f x2i x(2i+1)))
 
-expandir f (fx:fxs) (x:y:xs) = fx:((f fx x):(expandir f fxs xs))
+S(emparejar f <x0,x1,...,xn>) = max(S(f x0 x1), S(emparejar f <x2,...,xn>)) + k1
+                              = max(S(f x0 x1), S(f x2 x3), S(emparejar f <x4,...,xn>)) + 2k1
+                              ...
+                              = max_{i \in [0,n/2]} S(f x2i x(2i+1)) + (n/2)k1 + k2 si n es impar
+                                                                               + k3 si n es par
+                              <El mayor entre n y el max come al otro>
+                              \in O(max(n, max_{i \in [0,n/2]} S(f x2i x(2i+1))))
+                              <Asintoticamente n va a ganar>
+                              \in O(n)
+
+expandir f (fx:fxs) (x:y:xs) = let (a, b) = f fx x ||| expandir f fxs xs in fx:a:b
 expandir f [fx] [x] = [fx]
 expandir f [] [] = []
 
@@ -48,6 +59,19 @@ W(expandir f <x0,x1,...,xn> <y0,y1,...,ym>) = W(f x0 y0) + W(expandir f <x1,...,
                                             = W(f x0 y0) + W(f x1 y2) + W(expandir f <x2,...,xn> <y4,...,ym>) + 2k1
                                             ...
                                             \in O(sum {i-\floor{m/2}} W (f xi y2i) + m)
+                                            <La sumatoria se come el termino lineal>
+                                            \in O(sum {i-\floor{m/2}} W (f xi y2i))
+
+S(expandir f <x0,x1,...,xn> <y0,y1,...,ym>) = max(S(f x0 y0), S(expandir f <x1,...,ym> <y2,...,xn>)) + k1
+                                            = max(S(f x0 y0), S(f x1 y2), S(expandir f <x2,...,ym> <y4,...,xn>)) + 2k1
+                                            ...
+                                            = max_{i \in [0, m/2]} S(f yi x2i) + (m/2)k1 + k2 si es impar
+                                                                                         + k3 si es par
+                                            <El mayor entre m y el max come al otro>
+                                            \in O(max(m, max_{i \in [0,m/2]} S(f xi y2i)))
+                                            <Asintoticamente m va a ganar>
+                                            \in O(m)
+
 
 scanS f neutro []  = k1
 scanS f neutro [a] = k2 + W(f neutro a)
@@ -62,16 +86,25 @@ W(emparejar N) = k1 + W(emparejar N-2) => O(N)
 N = largo de la secuencia 
 W(expandir N) = k1 + W(expandir N-2) => O(N)
 
-N = largo de la secuencia
-W(scanS f b N) = emparejar(N) + W(scanS f b N/2) + expandir(N) + k1 =
-
 Sea <x0,x1,x2,...,xn> la secuencia S. Sea <y0, y1, ..., ym> = p1 (scanS f neutro (emparejar f S)).
                     <neutro,         ,x0+x1,      ,x0+x1+x2+x3,       >
-                    k*(sum {i-\floor{n/2}} W(f x2i x(2i+1)) + n) + k*(sum {i-\floor{n/2}} W (f yi x2i) + n)   W(scanS f b N/2) =
-                    ...
-                    k * (  sum {x,y \in Or(f,b,s)} + 2n) + W(scanS f b N/2)
-                    \in O(  ( sum {x,y \in Or(f,b,s)} + 2n))
+N = largo de la secuencia
+W(scanS f b N) = emparejar(N) + W(scanS f b N/2) + expandir(N) + k1
+               = k*(sum {i-\floor{n/2}} W(f x2i x(2i+1)) + n) + k*(sum {i-\floor{n/2}} W (f yi x2i) + n)   W(scanS f b N/2)
+                 ...
+               = k * (  sum {x,y \in Or(f,b,s)} + 2n) + W(scanS f b N/2)
+               \in O(  ( sum {x,y \in Or(f,b,s)} + 2n))
 
+S(scanS f neutro []) = k1
+S(scanS f neutro [a]) = k2 + S(f neutro a)
+S(scanS f neutro ls) = S(emparejar f ls) + S(scanS f neutro reduccion) + S(expandir f recursion ls)
+    + k1 
+                     = max_{i \in [0,n/2]} S(f x2i x(2i+1)) + (n/2)k3 + max_{i \in [0, n/2]} S(f yi x2i)
+                     + (n/2)k4 + S(expandir f recursion ls)
+
+S(scanS f neutro <x0,x1,...,xn>) \in O(max{n, (lg n) * max_{x, y \in Os(f neutro s)} (f x y)})
+                                 <Asintoticamente n va a ganar>
+                                 \in O(n)
 
 reducetree f (ELT x) = x
 reducetree f (NODE ls rs) = 

@@ -36,7 +36,7 @@ testMapNonEmptySeq =
 testMap2 ::Test   
 testMap2 = 
   TestCase $ assertEqual "Error on testMap2"
-                         (fromList [0,10,-10,2]) (mapS (\x-> if (mod x 2) == 0 then x else x+1) s5)                
+                         (fromList [0,10,-10,2]) (mapS (\x-> if even x then x else x+1) s5)                
 
 testReduceSumSeq0 :: Test
 testReduceSumSeq0 = 
